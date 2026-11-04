@@ -1,0 +1,729 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+</head>
+<body>
+<title>Заявка на заміну вікон</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Onest:wght@400;500;600&family=Unbounded:wght@500;700&display=swap">
+<style>
+/* Layout: бланк заміру. Ліворуч вікна з кресленнями й розмірами, праворуч розрахунок на смужці рулетки. */
+:root {
+  --paper: #F3F6F7;
+  --surface: #FFFFFF;
+  --ink: #142029;
+  --muted: #586874;
+  --line: #D3DCE1;
+  --tape: #F2B705;
+  --tape-ink: #1E1A0A;
+  --glass: #23707F;
+  --glass-fill: rgba(35, 112, 127, 0.10);
+  --alert: #A9402C;
+  --alert-bg: #FBEDE9;
+  --font-display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --font-body: "Onest", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0E1418; --surface: #151D22; --ink: #E4EBEE; --muted: #93A4AE; --line: #2A363E;
+    --tape: #F2C12E; --tape-ink: #1E1A0A; --glass: #6BBCCB; --glass-fill: rgba(107, 188, 203, 0.13);
+    --alert: #EE8C74; --alert-bg: #2E1A15; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0E1418; --surface: #151D22; --ink: #E4EBEE; --muted: #93A4AE; --line: #2A363E;
+  --tape: #F2C12E; --tape-ink: #1E1A0A; --glass: #6BBCCB; --glass-fill: rgba(107, 188, 203, 0.13);
+  --alert: #EE8C74; --alert-bg: #2E1A15; color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 16px/1.55 var(--font-body);
+  -webkit-text-size-adjust: 100%;
+}
+.wrap {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+h1, h2, h3 { text-wrap: balance; margin: 0; }
+h2 { font: 600 1.25rem/1.3 var(--font-body); }
+a { color: var(--glass); }
+:focus-visible { outline: 2px solid var(--glass); outline-offset: 2px; }
+
+/* Демо-смуга */
+.demo-bar { background: var(--tape); color: var(--tape-ink); font-size: 0.875rem; }
+.demo-bar .wrap { padding-block: 8px; }
+
+/* Шапка */
+.top { border-bottom: 1px solid var(--line); }
+.top-in { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 24px; padding-block: 14px; }
+.brand { font: 700 1rem/1.2 var(--font-display); letter-spacing: 0.01em; }
+.top-phone { color: var(--muted); font-size: 0.9375rem; }
+
+/* Перший екран */
+.hero .wrap { padding-block: 40px 32px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+.eyebrow { margin: 0; font: 500 0.75rem/1 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.hero h1 {
+  font: 700 clamp(1.55rem, 4.4vw, 2.75rem)/1.12 var(--font-display);
+  max-width: 22ch;
+  overflow-wrap: break-word;
+}
+.lead { margin: 0; max-width: 60ch; font-size: 1.0625rem; color: var(--muted); }
+.facts { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px 28px; max-width: 760px; }
+.facts li { display: grid; gap: 2px; padding-top: 10px; border-top: 2px solid var(--ink); min-width: 0; }
+.facts b { font: 600 1.0625rem/1.3 var(--font-body); }
+.facts span { color: var(--muted); font-size: 0.9375rem; }
+
+/* Основна сітка */
+main.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  grid-template-areas: "rows calc" "contacts calc" "result calc";
+  gap: 36px 40px;
+  align-items: start;
+  padding-block: 8px 56px;
+}
+form#order { display: contents; }
+#sec-rows { grid-area: rows; }
+#contacts { grid-area: contacts; }
+#result { grid-area: result; }
+.calc { grid-area: calc; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); }
+.sec { display: grid; gap: 16px; min-width: 0; }
+.sec-head { display: grid; gap: 4px; }
+.hint { margin: 0; color: var(--muted); font-size: 0.9375rem; }
+.sample { justify-self: start; font: 500 0.75rem/1 var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--glass); border: 1px solid var(--glass); border-radius: 4px; padding: 5px 8px; }
+
+/* Рядок вікна */
+#rows { display: grid; gap: 12px; }
+.wrow {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 12px 12px 12px 8px;
+}
+.draw { width: 132px; height: auto; max-width: 100%; display: block; }
+.draw .frame { fill: var(--surface); stroke: var(--ink); stroke-width: 1.6; }
+.draw .pane { fill: var(--glass-fill); stroke: var(--ink); stroke-width: 0.9; }
+.draw .turn { fill: none; stroke: var(--glass); stroke-width: 0.9; }
+.draw .tilt { fill: none; stroke: var(--glass); stroke-width: 0.8; stroke-dasharray: 3 2; }
+.draw .wall { fill: none; stroke: var(--muted); stroke-width: 0.8; stroke-dasharray: 2 2; }
+.draw .dim { stroke: var(--muted); stroke-width: 0.8; }
+.draw .dimtext { fill: var(--muted); font: 500 9px var(--font-mono); }
+.wfields { display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); gap: 10px 12px; min-width: 0; }
+.wfields .f-type { grid-column: 1 / -1; }
+.del {
+  align-self: start;
+  width: 36px; height: 36px;
+  border: 1px solid var(--line); border-radius: 6px;
+  background: transparent; color: var(--muted);
+  font: 400 1.25rem/1 var(--font-body); cursor: pointer;
+}
+.del:hover { color: var(--alert); border-color: var(--alert); }
+.add {
+  justify-self: start;
+  border: 1px dashed var(--muted); border-radius: 6px;
+  background: transparent; color: var(--ink);
+  padding: 10px 16px; font: 500 0.9375rem/1 var(--font-body); cursor: pointer;
+}
+.add:hover { border-style: solid; }
+
+/* Поля */
+.f { display: grid; gap: 4px; min-width: 0; }
+.f > span { font-size: 0.8125rem; color: var(--muted); }
+input[type="text"], input[type="tel"], input[type="number"], select, textarea {
+  width: 100%;
+  font: 400 1rem/1.3 var(--font-body);
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+input[type="number"] { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+textarea { resize: vertical; min-height: 84px; }
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--glass); outline-offset: 0; border-color: transparent; }
+.fields2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px 16px; }
+fieldset { border: 0; margin: 0; padding: 0; min-width: 0; display: grid; gap: 8px; }
+legend { padding: 0; margin-bottom: 8px; font-weight: 600; }
+
+.choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; }
+.choice {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 10px; align-items: start;
+  background: var(--surface);
+  border: 1px solid var(--line); border-radius: 6px;
+  padding: 10px 12px; cursor: pointer;
+}
+.choice input { margin: 3px 0 0; accent-color: var(--glass); grid-row: span 2; }
+.choice b { font-weight: 500; }
+.choice small { grid-column: 2; color: var(--muted); font-size: 0.8125rem; }
+.choice:has(input:checked) { border-color: var(--glass); box-shadow: inset 0 0 0 1px var(--glass); }
+.choice.warn:has(input:checked) { border-color: var(--alert); box-shadow: inset 0 0 0 1px var(--alert); background: var(--alert-bg); }
+
+.btn-main {
+  justify-self: start;
+  border: 0; border-radius: 6px;
+  background: var(--tape); color: var(--tape-ink);
+  font: 600 1.0625rem/1 var(--font-body);
+  padding: 16px 28px; cursor: pointer;
+}
+.btn-main:hover { filter: brightness(0.95); }
+.err { margin: 0; color: var(--alert); font-weight: 500; }
+.fine { margin: 0; color: var(--muted); font-size: 0.8125rem; max-width: 60ch; }
+
+/* Розрахунок */
+.calc {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.ruler {
+  height: 22px;
+  background-color: var(--tape);
+  background-image:
+    repeating-linear-gradient(90deg, var(--tape-ink) 0 1px, transparent 1px 40px),
+    repeating-linear-gradient(90deg, var(--tape-ink) 0 1px, transparent 1px 20px),
+    repeating-linear-gradient(90deg, var(--tape-ink) 0 1px, transparent 1px 4px);
+  background-size: 100% 12px, 100% 8px, 100% 5px;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+}
+.calc-in { display: grid; gap: 14px; padding: 18px 20px 20px; }
+.calc dl { margin: 0; display: grid; gap: 8px; }
+.calc dl div { display: flex; justify-content: space-between; gap: 12px; font-size: 0.9375rem; }
+.calc dt { color: var(--muted); }
+.calc dd { margin: 0; text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.total { display: grid; gap: 4px; padding-top: 14px; border-top: 1px solid var(--line); }
+.total span { color: var(--muted); font-size: 0.875rem; }
+.total output { font: 700 1.5rem/1.2 var(--font-display); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.when { margin: 0; font-size: 0.9375rem; }
+.when b { font-weight: 600; }
+.note { margin: 0; color: var(--muted); font-size: 0.8125rem; }
+.to-form { display: none; }
+
+/* Результат */
+#result { display: grid; gap: 14px; padding: 20px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; min-width: 0; }
+#result-msg { font: 400 0.875rem/1.5 var(--font-mono); min-height: 260px; }
+.res-actions { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+.btn-sec { border: 1px solid var(--ink); border-radius: 6px; background: transparent; color: var(--ink); padding: 10px 16px; font: 500 0.9375rem/1 var(--font-body); cursor: pointer; }
+.copy-status { color: var(--muted); font-size: 0.875rem; }
+.reach { margin: 0; display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: 0.9375rem; }
+.reach .mono { user-select: all; }
+
+/* Як це працює */
+.how { border-top: 1px solid var(--line); }
+.how .wrap { padding-block: 48px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px 32px; counter-reset: step; }
+.steps li { counter-increment: step; display: grid; gap: 6px; min-width: 0; }
+.steps li::before { content: counter(step); font: 700 1.75rem/1 var(--font-display); color: var(--glass); }
+.steps b { font-weight: 600; }
+.steps p { margin: 0; color: var(--muted); }
+
+.faq { display: grid; gap: 0; max-width: 760px; }
+.faq details { border-bottom: 1px solid var(--line); }
+.faq summary { cursor: pointer; padding: 14px 0; font-weight: 500; }
+.faq p { margin: 0 0 16px; color: var(--muted); max-width: 65ch; }
+
+footer { border-top: 1px solid var(--line); }
+footer .wrap { padding-block: 20px 32px; color: var(--muted); font-size: 0.8125rem; display: grid; gap: 4px; }
+
+@media (max-width: 880px) {
+  main.grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "rows" "calc" "contacts" "result"; gap: 28px; }
+  .calc { position: static; }
+  .to-form { display: inline-block; }
+}
+@media (max-width: 520px) {
+  .wrow { grid-template-columns: 92px minmax(0, 1fr) auto; gap: 10px; padding: 10px 8px 10px 4px; }
+  .draw { width: 92px; }
+  .wfields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .wfields .f-qty { grid-column: 1 / -1; }
+  .btn-main { justify-self: stretch; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+</style>
+
+<div class="demo-bar" id="demo-bar"><div class="wrap">Демо-сторінка. Назва, контакти й ціни тут для прикладу. Заявки звідси нікуди не надсилаються: після натискання ви побачите текст, який отримає майстер.</div></div>
+
+<header class="top">
+  <div class="wrap top-in">
+    <span class="brand" id="brand">Назва сервісу</span>
+    <span class="top-phone mono" id="top-phone">+380 00 000 00 00</span>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Заміна та ремонт вікон</p>
+    <h1>Заміна вікон <span id="city-in">у вашому місті</span> без черги на місяць</h1>
+    <p class="lead">Вкажіть розміри вікон і одразу побачите орієнтовну ціну. Ми передамо заявку майстру з вільним графіком, і він зателефонує вам сам.</p>
+    <ul class="facts">
+      <li><b><span class="mono" id="fact-days">3–7</span> днів</b><span>до заміру</span></li>
+      <li><b>Ціна одразу</b><span>ще до виїзду майстра</span></li>
+      <li><b>Безкоштовно для вас</b><span>майстер платить нам за заявку</span></li>
+    </ul>
+  </div>
+</section>
+
+<main class="wrap grid">
+  <form id="order" name="zayavka" method="POST" data-netlify="true" netlify-honeypot="bot-field" novalidate>
+    <input type="hidden" name="form-name" value="zayavka">
+    <p hidden><label>Не заповнюйте: <input name="bot-field" id="bot-field"></label></p>
+    <textarea name="details" id="details" hidden></textarea>
+
+    <section class="sec" id="sec-rows" aria-labelledby="h-rows">
+      <div class="sec-head">
+        <h2 id="h-rows">Ваші вікна</h2>
+        <p class="hint">Розміри по зовнішньому краю рами, у сантиметрах. Приблизні теж підійдуть.</p>
+      </div>
+      <span class="sample" id="sample-tag">Заповнено для прикладу</span>
+      <div id="rows"></div>
+      <button type="button" class="add" id="add-row">+ Додати вікно</button>
+
+      <fieldset>
+        <legend>Профіль</legend>
+        <div class="choices" id="profiles"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Додатково до кожного вікна</legend>
+        <div class="choices" id="extras"></div>
+      </fieldset>
+    </section>
+
+    <section class="sec" id="contacts" aria-labelledby="h-contacts">
+      <div class="sec-head">
+        <h2 id="h-contacts">Куди зателефонувати</h2>
+        <p class="hint">Майстер подзвонить, уточнить деталі й домовиться про замір.</p>
+      </div>
+      <div class="fields2">
+        <label class="f"><span>Ім'я</span><input type="text" id="name" name="name" autocomplete="name" placeholder="Олена"></label>
+        <label class="f"><span>Телефон</span><input type="tel" id="phone" name="phone" autocomplete="tel" inputmode="tel" placeholder="+380 67 123 45 67"></label>
+        <label class="f"><span>Район або адреса</span><input type="text" id="district" name="district" autocomplete="street-address" placeholder="Район, вулиця"></label>
+        <div class="fields2" style="gap:12px">
+          <label class="f"><span>Житло</span>
+            <select id="housing" name="housing">
+              <option>Квартира</option>
+              <option>Приватний будинок</option>
+              <option>Офіс або магазин</option>
+            </select>
+          </label>
+          <label class="f"><span>Поверх</span><input type="number" id="floor" name="floor" min="1" max="40" inputmode="numeric" placeholder="5"></label>
+        </div>
+      </div>
+
+      <fieldset>
+        <legend>Наскільки терміново</legend>
+        <div class="choices">
+          <label class="choice"><input type="radio" name="urgency" id="urg-normal" value="Звичайний замір" checked><b>Звичайно</b><small>замір протягом <span class="days-inline">3–7</span> днів</small></label>
+          <label class="choice warn"><input type="radio" name="urgency" id="urg-urgent" value="ТЕРМІНОВО"><b>Терміново</b><small>немає скла, дме, не зачиняється</small></label>
+        </div>
+      </fieldset>
+
+      <div class="choices">
+        <label class="choice warn"><input type="checkbox" name="damage" id="damage" value="так"><b>Пошкоджено обстрілом</b><small>такі заявки передаємо першими</small></label>
+        <label class="choice"><input type="checkbox" name="photos" id="photos" value="так" checked><b>Можу надіслати фото</b><small>у Viber або Telegram після дзвінка</small></label>
+      </div>
+
+      <label class="f"><span>Коментар (необов'язково)</span><textarea id="comment" name="comment" placeholder="Наприклад: на кухні не відкривається стулка, на балконі старе дерев'яне вікно"></textarea></label>
+
+      <p class="err" id="err" role="alert" hidden></p>
+      <button type="submit" class="btn-main" id="submit">Надіслати заявку</button>
+      <p class="fine">Натискаючи кнопку, ви погоджуєтесь, що майстер зателефонує вам щодо цієї заявки. Номер не передається третім особам.</p>
+    </section>
+  </form>
+
+  <aside class="calc" id="calc" aria-labelledby="h-calc">
+    <div class="ruler" aria-hidden="true"></div>
+    <div class="calc-in">
+      <h2 id="h-calc">Розрахунок</h2>
+      <dl>
+        <div><dt>Вікон</dt><dd id="c-count">0</dd></div>
+        <div><dt>Площа</dt><dd id="c-area">0 м²</dd></div>
+        <div><dt id="c-profile-label">Вікна</dt><dd id="c-base">0 ₴</dd></div>
+        <div><dt>Монтаж, ~<span id="c-install-pct">15</span>%</dt><dd id="c-install">0 ₴</dd></div>
+        <div><dt>Додатково</dt><dd id="c-extras">0 ₴</dd></div>
+      </dl>
+      <div class="total">
+        <span>Орієнтовно</span>
+        <output id="c-total" for="rows">0 ₴</output>
+      </div>
+      <p class="when" id="c-when"></p>
+      <p class="note">Точну ціну майстер назве після заміру: вона залежить від фурнітури, склопакета і стану прорізу.</p>
+      <button type="button" class="btn-sec to-form" id="to-form">До заявки ↓</button>
+    </div>
+  </aside>
+
+  <section id="result" aria-live="polite" hidden>
+    <h2 id="result-title">Ось що отримає майстер</h2>
+    <p class="hint" id="result-text"></p>
+    <label class="f"><span>Текст заявки</span><textarea id="result-msg" readonly></textarea></label>
+    <div class="res-actions">
+      <button type="button" class="btn-sec" id="copy">Скопіювати заявку</button>
+      <span class="copy-status" id="copy-status"></span>
+    </div>
+    <p class="reach" id="reach"></p>
+    <div class="res-actions"><button type="button" class="btn-sec" id="again">Змінити заявку</button></div>
+  </section>
+</main>
+
+<section class="how" aria-labelledby="h-how">
+  <div class="wrap">
+    <h2 id="h-how">Як це працює</h2>
+    <ol class="steps">
+      <li><b>Ви вказуєте вікна</b><p>Тип, розміри й кількість. Ціна рахується одразу, без дзвінків.</p></li>
+      <li><b>Ми знаходимо майстра</b><p>Передаємо заявку майстру, у якого є вільні дні найближчим часом. Він телефонує вам сам.</p></li>
+      <li><b>Замір і монтаж напряму</b><p>Договір, оплату і гарантію ви узгоджуєте з майстром. Нам ви нічого не платите.</p></li>
+    </ol>
+
+    <div class="faq">
+      <details>
+        <summary>Скільки коштує ваша послуга?</summary>
+        <p>Для вас безкоштовно. Майстер платить нам за кожну передану заявку.</p>
+      </details>
+      <details>
+        <summary>Чому ціна орієнтовна?</summary>
+        <p>Ми рахуємо за площею і середньою ціною профілю. Остаточна сума залежить від фурнітури, склопакета, укосів і стану прорізу. Її назве майстер після заміру.</p>
+      </details>
+      <details>
+        <summary>Вікна пошкоджені обстрілом. Що робити?</summary>
+        <p>Позначте це в заявці, такі заявки ми передаємо першими. Якщо плануєте компенсацію в програмі «єВідновлення», спершу подайте заяву в Дії: пошкодження фіксує комісія, і сума рахується за її чек-листом.</p>
+      </details>
+      <details>
+        <summary>Як швидко приїде майстер?</summary>
+        <p>Зазвичай замір протягом <span class="days-inline">3–7</span> днів. Для термінових заявок шукаємо майстра в той самий день.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span id="foot-brand">Назва сервісу</span>
+    <span>Сервіс підбору майстрів з вікон. Ціни на сторінці орієнтовні й не є публічною офертою.</span>
+  </div>
+</footer>
+
+<script>
+/* ===== Налаштування: змініть під себе ===== */
+const CONFIG = {
+  demo: true,                         // true = заявка не надсилається, а показується текстом. Для запуску: false
+  brand: "Назва сервісу",
+  cityIn: "у вашому місті",           // наприклад: "у Житомирі"
+  phone: "+380 00 000 00 00",
+  viber: "+380 00 000 00 00",
+  telegram: "",                       // username без @, наприклад: "vikna_zhytomyr"
+  measureDays: "3–7",
+  callbackText: "2 годин у робочий час",
+  installShare: 0.15,                 // монтаж як частка від ціни вікон
+  prices: {                           // грн за м², приклад: уточніть у майстрів-партнерів
+    econom:   { label: "Економ",            note: "3 камери, звичайний склопакет", perM2: 5200 },
+    standard: { label: "Стандарт",          note: "5 камер, двокамерний склопакет", perM2: 6000 },
+    energy:   { label: "Енергозберігаючий", note: "5–6 камер, енергоскло", perM2: 7200 }
+  },
+  extras: {                           // грн за кожне вікно
+    removal: { label: "Демонтаж старого", perWindow: 350 },
+    sill:    { label: "Підвіконня",       perWindow: 900 },
+    drip:    { label: "Відлив",           perWindow: 450 },
+    net:     { label: "Москітна сітка",   perWindow: 600 }
+  }
+};
+
+const TYPES = {
+  fixed:  { label: "Глухе (не відкривається)", sashes: [0] },
+  single: { label: "Одностулкове",              sashes: [1] },
+  double: { label: "Двостулкове",               sashes: [0, 1] },
+  triple: { label: "Тристулкове",               sashes: [1, 0, 1] },
+  balcony:{ label: "Балконний блок (двері + вікно)", balcony: true }
+};
+
+let rows = [
+  { type: "double", w: 130, h: 140, qty: 2 },
+  { type: "balcony", w: 200, h: 210, qty: 1 }
+];
+let touched = false;
+
+const $ = (id) => document.getElementById(id);
+const money = new Intl.NumberFormat("uk-UA", { maximumFractionDigits: 0 });
+const num = (v) => { const n = parseFloat(String(v).replace(",", ".")); return Number.isFinite(n) ? n : 0; };
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const r100 = (v) => Math.round(v / 100) * 100;
+const fmtArea = (a) => a.toLocaleString("uk-UA", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+/* ---- Креслення вікна ---- */
+function drawWindow(r) {
+  const t = TYPES[r.type] || TYPES.double;
+  const W = clamp(num(r.w) || 100, 30, 400), H = clamp(num(r.h) || 100, 30, 300);
+  const box = { x: 26, y: 8, w: 116, h: 96 };
+  const s = Math.min(box.w / W, box.h / H);
+  const dw = W * s, dh = H * s;
+  const x0 = box.x + (box.w - dw) / 2, y0 = box.y + (box.h - dh) / 2;
+  let g = "";
+
+  const sash = (x, y, w, h, open) => {
+    const i = 3;
+    g += `<rect class="pane" x="${x + i}" y="${y + i}" width="${Math.max(1, w - 2 * i)}" height="${Math.max(1, h - 2 * i)}"/>`;
+    if (open) {
+      g += `<polyline class="turn" points="${x + i},${y + i} ${x + w - i},${y + h / 2} ${x + i},${y + h - i}"/>`;
+      g += `<polyline class="tilt" points="${x + i},${y + h - i} ${x + w / 2},${y + i} ${x + w - i},${y + h - i}"/>`;
+    }
+  };
+
+  if (t.balcony) {
+    const doorW = dw * 0.36, winH = dh * 0.62;
+    g += `<rect class="frame" x="${x0}" y="${y0}" width="${doorW}" height="${dh}"/>`;
+    g += `<rect class="frame" x="${x0 + doorW}" y="${y0}" width="${dw - doorW}" height="${winH}"/>`;
+    g += `<rect class="wall" x="${x0 + doorW + 1}" y="${y0 + winH + 1}" width="${dw - doorW - 2}" height="${dh - winH - 2}"/>`;
+    sash(x0, y0, doorW, dh, true);
+    sash(x0 + doorW, y0, dw - doorW, winH, true);
+  } else {
+    g += `<rect class="frame" x="${x0}" y="${y0}" width="${dw}" height="${dh}"/>`;
+    const n = t.sashes.length, sw = dw / n;
+    t.sashes.forEach((open, k) => sash(x0 + k * sw, y0, sw, dh, open === 1));
+  }
+
+  const yd = y0 + dh + 9, xd = x0 - 9;
+  g += `<line class="dim" x1="${x0}" y1="${yd}" x2="${x0 + dw}" y2="${yd}"/>`;
+  g += `<line class="dim" x1="${x0}" y1="${yd - 3}" x2="${x0}" y2="${yd + 3}"/><line class="dim" x1="${x0 + dw}" y1="${yd - 3}" x2="${x0 + dw}" y2="${yd + 3}"/>`;
+  g += `<text class="dimtext" x="${x0 + dw / 2}" y="${yd + 12}" text-anchor="middle">${Math.round(num(r.w)) || "?"}</text>`;
+  g += `<line class="dim" x1="${xd}" y1="${y0}" x2="${xd}" y2="${y0 + dh}"/>`;
+  g += `<line class="dim" x1="${xd - 3}" y1="${y0}" x2="${xd + 3}" y2="${y0}"/><line class="dim" x1="${xd - 3}" y1="${y0 + dh}" x2="${xd + 3}" y2="${y0 + dh}"/>`;
+  g += `<text class="dimtext" x="${xd - 4}" y="${y0 + dh / 2}" text-anchor="middle" transform="rotate(-90 ${xd - 4} ${y0 + dh / 2})">${Math.round(num(r.h)) || "?"}</text>`;
+  return g;
+}
+
+/* ---- Рядки вікон ---- */
+function renderRows() {
+  const opts = (sel) => Object.entries(TYPES).map(([k, t]) => `<option value="${k}"${k === sel ? " selected" : ""}>${esc(t.label)}</option>`).join("");
+  $("rows").innerHTML = rows.map((r, i) => `
+    <div class="wrow" data-i="${i}">
+      <svg class="draw" id="draw-${i}" viewBox="0 0 150 128" role="img" aria-label="Креслення вікна ${i + 1}">${drawWindow(r)}</svg>
+      <div class="wfields">
+        <label class="f f-type"><span>Тип вікна</span><select id="type-${i}" data-k="type">${opts(r.type)}</select></label>
+        <label class="f"><span>Ширина, см</span><input type="number" id="w-${i}" data-k="w" min="30" max="400" inputmode="numeric" value="${esc(r.w)}"></label>
+        <label class="f"><span>Висота, см</span><input type="number" id="h-${i}" data-k="h" min="30" max="300" inputmode="numeric" value="${esc(r.h)}"></label>
+        <label class="f f-qty"><span>Кількість</span><input type="number" id="q-${i}" data-k="qty" min="1" max="50" inputmode="numeric" value="${esc(r.qty)}"></label>
+      </div>
+      <button type="button" class="del" data-del="${i}" aria-label="Видалити вікно ${i + 1}"${rows.length < 2 ? " hidden" : ""}>×</button>
+    </div>`).join("");
+}
+
+function onRowInput(e) {
+  const el = e.target, k = el.dataset.k;
+  if (!k) return;
+  const row = el.closest(".wrow"), i = +row.dataset.i;
+  rows[i][k] = k === "type" ? el.value : el.value;
+  $("draw-" + i).innerHTML = drawWindow(rows[i]);
+  markTouched();
+  recalc();
+}
+
+function markTouched() {
+  if (!touched) { touched = true; $("sample-tag").hidden = true; }
+}
+
+/* ---- Профілі та доповнення ---- */
+function renderChoices() {
+  $("profiles").innerHTML = Object.entries(CONFIG.prices).map(([k, p]) =>
+    `<label class="choice"><input type="radio" name="profile" id="prof-${k}" value="${k}"${k === "standard" ? " checked" : ""}><b>${esc(p.label)}</b><small>${esc(p.note)} · <span class="mono">${money.format(p.perM2)} ₴/м²</span></small></label>`
+  ).join("");
+  $("extras").innerHTML = Object.entries(CONFIG.extras).map(([k, x]) =>
+    `<label class="choice"><input type="checkbox" name="extra" id="ex-${k}" value="${k}"${k === "removal" || k === "sill" ? " checked" : ""}><b>${esc(x.label)}</b><small class="mono">+${money.format(x.perWindow)} ₴</small></label>`
+  ).join("");
+}
+
+/* ---- Розрахунок ---- */
+function compute() {
+  let area = 0, count = 0;
+  rows.forEach((r) => {
+    const w = num(r.w), h = num(r.h), q = Math.max(0, Math.round(num(r.qty)));
+    if (!w || !h || !q) return;
+    const a = (w / 100) * (h / 100) * (TYPES[r.type] && TYPES[r.type].balcony ? 0.8 : 1);
+    area += a * q;
+    count += q;
+  });
+  const profKey = (document.querySelector('input[name="profile"]:checked') || {}).value || "standard";
+  const prof = CONFIG.prices[profKey];
+  const base = area * prof.perM2;
+  const install = base * CONFIG.installShare;
+  const chosen = [...document.querySelectorAll('input[name="extra"]:checked')].map((x) => x.value);
+  const extras = chosen.reduce((s, k) => s + CONFIG.extras[k].perWindow * count, 0);
+  const total = base + install + extras;
+  return { area, count, prof, base, install, chosen, extras, low: r100(total * 0.9), high: r100(total * 1.15) };
+}
+
+function recalc() {
+  const c = compute();
+  $("c-count").textContent = c.count + " шт";
+  $("c-area").textContent = fmtArea(c.area) + " м²";
+  $("c-profile-label").textContent = `${c.prof.label}, ${money.format(c.prof.perM2)} ₴/м²`;
+  $("c-base").textContent = money.format(Math.round(c.base)) + " ₴";
+  $("c-install").textContent = money.format(Math.round(c.install)) + " ₴";
+  $("c-extras").textContent = money.format(Math.round(c.extras)) + " ₴";
+  $("c-total").textContent = c.count ? `${money.format(c.low)} – ${money.format(c.high)} ₴` : "Вкажіть розміри";
+  const urgent = $("urg-urgent").checked;
+  $("c-when").innerHTML = urgent
+    ? "<b>Терміново:</b> шукаємо майстра сьогодні."
+    : `<b>Замір:</b> протягом ${esc(CONFIG.measureDays)} днів після заявки.`;
+}
+
+/* ---- Текст заявки ---- */
+function buildMessage() {
+  const c = compute();
+  const v = (id) => $(id).value.trim();
+  const lines = [];
+  lines.push("ЗАЯВКА: заміна вікон");
+  if ($("urg-urgent").checked) lines.push("!!! ТЕРМІНОВО");
+  if ($("damage").checked) lines.push("!!! Пошкоджено обстрілом");
+  lines.push("");
+  lines.push("Ім'я: " + (v("name") || "—"));
+  lines.push("Телефон: " + v("phone"));
+  lines.push("Район / адреса: " + (v("district") || "—"));
+  lines.push("Житло: " + $("housing").value + (v("floor") ? ", " + v("floor") + " поверх" : ""));
+  lines.push("");
+  lines.push("Вікна:");
+  rows.forEach((r, i) => {
+    const t = TYPES[r.type] || TYPES.double;
+    lines.push(`  ${i + 1}) ${t.label}, ${Math.round(num(r.w))} × ${Math.round(num(r.h))} см, ${Math.max(0, Math.round(num(r.qty)))} шт`);
+  });
+  lines.push("Профіль: " + c.prof.label);
+  lines.push("Додатково: " + (c.chosen.length ? c.chosen.map((k) => CONFIG.extras[k].label.toLowerCase()).join(", ") : "—"));
+  lines.push(`Площа: ${fmtArea(c.area)} м², вікон: ${c.count}`);
+  lines.push(`Орієнтовна ціна: ${money.format(c.low)} – ${money.format(c.high)} грн`);
+  lines.push("");
+  lines.push("Фото: " + ($("photos").checked ? "може надіслати в месенджер" : "ні"));
+  if (v("comment")) lines.push("Коментар: " + v("comment"));
+  return lines.join("\n");
+}
+
+/* ---- Надсилання ---- */
+async function onSubmit(e) {
+  e.preventDefault();
+  const err = $("err");
+  const digits = $("phone").value.replace(/\D/g, "");
+  const c = compute();
+  let msg = "";
+  if (!c.count) msg = "Вкажіть хоча б одне вікно з розмірами і кількістю.";
+  else if (digits.length < 10 || digits.length > 12) msg = "Перевірте телефон: потрібно 10 цифр, наприклад 067 123 45 67.";
+  if (msg) { err.textContent = msg; err.hidden = false; (c.count ? $("phone") : $("w-0")).focus(); return; }
+  err.hidden = true;
+
+  const text = buildMessage();
+  $("details").value = text;
+
+  if (CONFIG.demo) return showResult("demo", text);
+
+  $("submit").disabled = true;
+  try {
+    const body = new URLSearchParams(new FormData($("order"))).toString();
+    const res = await fetch("/", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body });
+    if (!res.ok) throw new Error(res.status);
+    showResult("ok", text);
+  } catch (_) {
+    showResult("fail", text);
+  } finally {
+    $("submit").disabled = false;
+  }
+}
+
+function showResult(kind, text) {
+  const title = { demo: "Ось що отримає майстер", ok: "Заявку отримано", fail: "Заявку не вдалося надіслати" }[kind];
+  const sub = {
+    demo: "Це демо, тому заявка нікуди не пішла. На робочій сторінці цей текст приходить на пошту або в месенджер одразу після натискання кнопки.",
+    ok: `Майстер зателефонує вам протягом ${CONFIG.callbackText}. Нижче копія вашої заявки.`,
+    fail: "Скопіюйте текст і надішліть нам у Viber або Telegram, або зателефонуйте."
+  }[kind];
+  $("result-title").textContent = title;
+  $("result-text").textContent = sub;
+  $("result-msg").value = text;
+  $("result-msg").rows = Math.min(24, text.split("\n").length + 1);
+  $("copy-status").textContent = "";
+  const parts = [`<span>Телефон: <span class="mono">${esc(CONFIG.phone)}</span></span>`];
+  if (CONFIG.viber) parts.push(`<span>Viber: <span class="mono">${esc(CONFIG.viber)}</span></span>`);
+  if (CONFIG.telegram) parts.push(`<span>Telegram: <a href="https://t.me/${encodeURIComponent(CONFIG.telegram)}" target="_blank" rel="noopener">@${esc(CONFIG.telegram)}</a></span>`);
+  $("reach").innerHTML = parts.join("");
+  $("contacts").hidden = true;
+  $("result").hidden = false;
+  $("result").scrollIntoView({ block: "start" });
+}
+
+async function copyText() {
+  const ta = $("result-msg");
+  try {
+    await navigator.clipboard.writeText(ta.value);
+    $("copy-status").textContent = "Скопійовано";
+  } catch (_) {
+    ta.focus();
+    ta.select();
+    $("copy-status").textContent = "Текст виділено: натисніть Ctrl+C або «Копіювати»";
+  }
+}
+
+/* ---- Запуск ---- */
+function applyConfig() {
+  $("demo-bar").hidden = !CONFIG.demo;
+  $("brand").textContent = CONFIG.brand;
+  $("foot-brand").textContent = CONFIG.brand;
+  $("top-phone").textContent = CONFIG.phone;
+  $("city-in").textContent = CONFIG.cityIn;
+  $("fact-days").textContent = CONFIG.measureDays;
+  document.querySelectorAll(".days-inline").forEach((el) => (el.textContent = CONFIG.measureDays));
+  $("c-install-pct").textContent = Math.round(CONFIG.installShare * 100);
+}
+
+applyConfig();
+renderChoices();
+renderRows();
+recalc();
+
+$("rows").addEventListener("input", onRowInput);
+$("rows").addEventListener("change", onRowInput);
+$("rows").addEventListener("click", (e) => {
+  const d = e.target.closest("[data-del]");
+  if (!d) return;
+  rows.splice(+d.dataset.del, 1);
+  markTouched();
+  renderRows();
+  recalc();
+});
+$("add-row").addEventListener("click", () => {
+  rows.push({ type: "double", w: 130, h: 140, qty: 1 });
+  markTouched();
+  renderRows();
+  recalc();
+  $("type-" + (rows.length - 1)).focus();
+});
+$("profiles").addEventListener("change", recalc);
+$("extras").addEventListener("change", recalc);
+$("urg-normal").addEventListener("change", recalc);
+$("urg-urgent").addEventListener("change", recalc);
+$("order").addEventListener("submit", onSubmit);
+$("copy").addEventListener("click", copyText);
+$("again").addEventListener("click", () => {
+  $("result").hidden = true;
+  $("contacts").hidden = false;
+  $("contacts").scrollIntoView({ block: "start" });
+});
+$("to-form").addEventListener("click", () => $("contacts").scrollIntoView({ block: "start" }));
+</script>
+
+</body>
+</html>
