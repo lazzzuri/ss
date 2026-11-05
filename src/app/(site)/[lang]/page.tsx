@@ -10,6 +10,8 @@ import { Calculator } from "@/components/forms";
 import { EntryCard, FaqList, JsonLd, WindowIcon } from "@/components/content";
 import { faqLd, orgLd, pageMeta, websiteLd } from "@/lib/seo";
 import { formatMoney } from "@/lib/calc";
+import { listPublishedPosts } from "@/lib/posts";
+import { PostCard } from "@/components/post-card";
 
 export const revalidate = 3600;
 
@@ -27,6 +29,7 @@ export default async function Home({ params }: { params: Promise<{ lang: Lang }>
   const buildings = catalogOf("building");
   const districtOpts = districts.map((x) => ({ slug: x.slug, name: x.name[lang] }));
   const pct = Math.round(settings.installShare * 100);
+  const posts = (await listPublishedPosts()).slice(0, 3);
 
   return (
     <>
@@ -172,6 +175,16 @@ export default async function Home({ params }: { params: Promise<{ lang: Lang }>
           {buildings.map((e) => <EntryCard key={e.slug} entry={e} lang={lang} />)}
         </div>
       </section>
+
+      {posts.length > 0 && (
+        <section className="wrap section" aria-labelledby="h-blog">
+          <div className="row" style={{ justifyContent: "space-between" }}>
+            <h2 className="h2" id="h-blog">{d.home.blogTitle}</h2>
+            <Link className="btn btn-glass" href={href(lang, "/blog")}>{d.cta.all} →</Link>
+          </div>
+          <div className="posts">{posts.map((p) => <PostCard key={p.slug} lang={lang} post={p} />)}</div>
+        </section>
+      )}
 
       <section className="wrap section" aria-labelledby="h-faq">
         <div className="split" style={{ alignItems: "start" }}>
