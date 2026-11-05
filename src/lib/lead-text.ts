@@ -1,5 +1,5 @@
 import type { LeadInput } from "./leads";
-import { getEntry } from "@/content";
+import { catalogItem } from "@/content/catalog";
 import { formatMoney } from "./calc";
 
 const TYPE_UK: Record<string, string> = {
@@ -14,8 +14,8 @@ const EXTRA_UK: Record<string, string> = { removal: "демонтаж", sill: "�
 
 /** Text of a lead as a master would receive it (always in Ukrainian). */
 export function leadText(l: LeadInput & { id?: number }): string {
-  const service = getEntry("service", l.service)?.name.uk ?? l.service;
-  const district = l.district === "other" ? "інший / область" : getEntry("district", l.district)?.name.uk ?? (l.district || "—");
+  const service = catalogItem("service", l.service)?.name.uk ?? l.service;
+  const district = l.district === "other" ? "інший / область" : catalogItem("district", l.district)?.name.uk ?? (l.district || "—");
   const lines: string[] = [];
   lines.push(`ЗАЯВКА${l.id ? ` №${l.id}` : ""}: ${service} · Київ, ${district}`);
   if (l.urgent) lines.push("!!! ТЕРМІНОВО");
