@@ -10,10 +10,9 @@ import { LangSwitch } from "./lang-switch";
 export function Sky() {
   return (
     <div className="sky" aria-hidden="true">
-      <div className="orb o1" />
-      <div className="orb o2" />
-      <div className="orb o3" />
-      <div className="frame" />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img className="city" src="/skyline.svg" alt="" />
+      <div className="haze" />
     </div>
   );
 }

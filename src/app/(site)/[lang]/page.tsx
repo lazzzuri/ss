@@ -7,7 +7,7 @@ import { getSettings } from "@/lib/settings";
 import { catalogOf } from "@/content/catalog";
 import { homeFaq, homeMeta } from "@/content/pages";
 import { Calculator } from "@/components/forms";
-import { EntryCard, FaqList, JsonLd } from "@/components/content";
+import { EntryCard, FaqList, JsonLd, WindowIcon } from "@/components/content";
 import { faqLd, orgLd, pageMeta, websiteLd } from "@/lib/seo";
 import { formatMoney } from "@/lib/calc";
 
@@ -33,7 +33,7 @@ export default async function Home({ params }: { params: Promise<{ lang: Lang }>
       <JsonLd data={[orgLd(lang, settings.phone), websiteLd(lang), faqLd(homeFaq[lang])]} />
 
       <section className="hero">
-        <div className="wrap hero-grid">
+        <div className="wrap hero-grid dusk">
           <div className="hero-copy glass">
             <span className="eyebrow">{d.home.eyebrow}</span>
             <h1 className="h1">{d.home.h1}</h1>
@@ -42,22 +42,45 @@ export default async function Home({ params }: { params: Promise<{ lang: Lang }>
               <a className="btn btn-amber" href="#calc">{d.cta.calc}</a>
               <Link className="btn btn-glass" href={href(lang, entryPath("service", "remont-vikon"))}>{d.cta.repair}</Link>
             </div>
-            <ul className="facts">
-              {d.home.facts.map((f, i) => (
-                <li key={i}>
-                  <b>{fill(f.b, { days: settings.measureDays })}</b>
-                  <span>{f.s}</span>
-                </li>
+            <p className="hero-facts">
+              <span><b>{settings.measureDays} {lang === "uk" ? "днів" : "дней"}</b> {lang === "uk" ? "до заміру" : "до замера"}</span>
+              <span><b>{lang === "uk" ? "Ціна" : "Цена"}</b> {lang === "uk" ? "одразу" : "сразу"}</span>
+              <span><b>0 ₴</b> {lang === "uk" ? "для вас" : "для вас"}</span>
+            </p>
+          </div>
+          <div className="svc-stack">
+            <Link className="svc glass" href={href(lang, entryPath("service", "zamina-vikon"))}>
+              <WindowIcon />
+              <span><b>{services[0].name[lang]}</b><small>{d.home.svcReplace}</small></span>
+              <span className="p">{lang === "uk" ? "від" : "от"} {formatMoney(settings.prices.econom, lang)} ₴/м²</span>
+            </Link>
+            <Link className="svc glass" href={href(lang, entryPath("service", "remont-vikon"))}>
+              <WindowIcon fill="rgba(159,216,255,.2)" accent="#9fd8ff" />
+              <span><b>{lang === "uk" ? "Ремонт і регулювання" : "Ремонт и регулировка"}</b><small>{d.home.svcRepair}</small></span>
+              <span className="p">{(settings.repairPrices[1]?.price[lang] ?? "").match(/^\S+\s[\d\s]+₴/)?.[0] ?? ""}</span>
+            </Link>
+            <Link className="svc glass warn" href={href(lang, entryPath("service", "vikna-pislya-obstrilu"))}>
+              <WindowIcon fill="rgba(255,155,130,.22)" accent="#ff9b82" />
+              <span><b>{lang === "uk" ? "Після обстрілу" : "После обстрела"}</b><small>{d.home.svcDamage}</small></span>
+              <span className="p">→</span>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="wrap section" aria-labelledby="h-calc">
+        <div className="calc-section">
+          <div className="calc-aside glass">
+            <span className="eyebrow">{d.nav.prices}</span>
+            <h2 className="h2" id="h-calc">{d.home.calcTitle}</h2>
+            <p style={{ color: "var(--ink-2)" }}>{d.home.calcLead}</p>
+            <ul>
+              {d.home.calcPoints.map((pt, i) => (
+                <li key={i}><span>{i + 1}</span>{pt}</li>
               ))}
             </ul>
           </div>
-          <Calculator
-            lang={lang}
-            service="zamina-vikon"
-            settings={settings}
-            districts={districtOpts}
-            phone={settings.phone}
-          />
+          <Calculator lang={lang} service="zamina-vikon" settings={settings} districts={districtOpts} phone={settings.phone} />
         </div>
       </section>
 

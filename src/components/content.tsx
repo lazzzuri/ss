@@ -136,3 +136,15 @@ export function Related({ refs, lang }: { refs: string[]; lang: Lang }) {
     </div>
   );
 }
+
+export function WindowIcon({ fill = "rgba(255,207,107,.2)", accent = "#ffd27a", size = 56 }: { fill?: string; accent?: string; size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 120 120" fill="none" stroke="#f1f6fa" strokeWidth="2.4" aria-hidden="true">
+      <rect x="10" y="8" width="100" height="104" rx="3" />
+      <rect x="14" y="12" width="44" height="96" fill={fill} strokeOpacity=".7" />
+      <rect x="62" y="12" width="44" height="96" fill={fill} strokeOpacity=".7" />
+      <polyline points="62,12 106,60 62,108" stroke={accent} strokeWidth="2" />
+      <polyline points="62,108 84,12 106,108" stroke={accent} strokeWidth="1.8" strokeDasharray="5 4" />
+    </svg>
+  );
+}
