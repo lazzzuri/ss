@@ -417,3 +417,9 @@ table.atable th { color: var(--muted); font: 500 11.5px/1 var(--font-mono); lett
   .mobile-bar .btn { min-height: 48px; padding: 10px 12px; font-size: 15px; }
   .site-footer { padding-bottom: 90px; }
 }
+
+/* keep long words and wide tables inside the column on phones */
+.section { grid-template-columns: minmax(0, 1fr); }
+.section > *, .layout > *, .page-head, .prose { min-width: 0; }
+.h1, .h2, .prose h2 { overflow-wrap: break-word; hyphens: auto; }
+@media (max-width: 420px) { .page-head .h1 { font-size: 26px !important; } }

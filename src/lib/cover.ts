@@ -22,7 +22,7 @@ export function coverSvg(seed: string, w = 1536, h = 1024): string {
   const parts: string[] = [];
   parts.push(`<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${p[0]}"/><stop offset=".45" stop-color="${p[1]}"/><stop offset=".78" stop-color="${p[2]}"/><stop offset="1" stop-color="${p[3]}"/></linearGradient>
   <radialGradient id="glow" cx=".5" cy="1" r=".7"><stop offset="0" stop-color="#ffb46a" stop-opacity=".55"/><stop offset="1" stop-color="#ffb46a" stop-opacity="0"/></radialGradient>
-  <filter id="blur"><feGaussianBlur stdDeviation="${30 + r() * 30}"/></filter></defs>`);
+  <filter id="blur" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="${30 + r() * 30}"/></filter></defs>`);
   parts.push(`<rect width="${w}" height="${h}" fill="url(#sky)"/><rect width="${w}" height="${h}" fill="url(#glow)"/>`);
   parts.push(`<circle cx="${w * (0.15 + r() * 0.7)}" cy="${h * (0.18 + r() * 0.2)}" r="${40 + r() * 50}" fill="#ffe6b0" opacity=".5" filter="url(#blur)"/>`);
   // skyline
