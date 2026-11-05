@@ -108,6 +108,33 @@ create table if not exists images (
   data bytea not null
 );
 
+create table if not exists events (
+  id bigserial primary key,
+  ts timestamptz not null default now(),
+  vid text not null,
+  sid text not null,
+  type text not null,
+  path text,
+  label text,
+  value double precision,
+  meta jsonb,
+  lang text,
+  ref text,
+  utm_source text,
+  utm_medium text,
+  utm_campaign text,
+  device text,
+  browser text,
+  country text,
+  width int
+);
+create index if not exists events_ts_idx on events (ts desc);
+create index if not exists events_vid_idx on events (vid, ts);
+create index if not exists events_sid_idx on events (sid, ts);
+create index if not exists events_type_ts_idx on events (type, ts desc);
+alter table leads add column if not exists vid text;
+alter table leads add column if not exists sid text;
+
 create table if not exists settings (
   key text primary key,
   value jsonb not null,

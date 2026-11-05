@@ -71,6 +71,8 @@ export async function POST(req: NextRequest) {
     page: str(body.page, 200),
     utm: body.utm && typeof body.utm === "object" ? (body.utm as Record<string, string>) : null,
     ipHash: await ipHash(req),
+    vid: /^[a-z0-9-]{8,64}$/i.test(String(body.vid ?? "")) ? String(body.vid) : null,
+    sid: /^[a-z0-9-]{8,64}$/i.test(String(body.sid ?? "")) ? String(body.sid) : null,
   };
 
   let id: number | undefined;

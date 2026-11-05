@@ -403,3 +403,17 @@ table.atable th { color: var(--muted); font: 500 11.5px/1 var(--font-mono); lett
 @media (max-width: 960px) { .hero-grid.dusk, .calc-section { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 560px) { .svc { grid-template-columns: auto minmax(0, 1fr); } .svc .p { grid-column: 2; } }
 @media (min-width: 961px) { .hero:has(.dusk) { min-height: calc(100vh - 84px); } }
+
+/* Sticky action bar on phones */
+.mobile-bar { display: none; }
+@media (max-width: 700px) {
+  .mobile-bar {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 70;
+    padding: 10px max(12px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px));
+    background: rgba(8, 16, 30, 0.72); border-top: 1px solid rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(18px) saturate(150%); -webkit-backdrop-filter: blur(18px) saturate(150%);
+  }
+  .mobile-bar .btn { min-height: 48px; padding: 10px 12px; font-size: 15px; }
+  .site-footer { padding-bottom: 90px; }
+}

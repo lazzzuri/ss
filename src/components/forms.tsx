@@ -5,6 +5,7 @@ import type { Lang, WindowPreset, WindowType } from "@/content/types";
 import type { Settings } from "@/config/site";
 import { t, fill } from "@/i18n/dict";
 import { EXTRAS, PROFILES, SASHES, WINDOW_TYPES, formatArea, formatMoney, quote, type Extra, type Profile } from "@/lib/calc";
+import { track, trackerIds } from "./tracker";
 
 type CalcSettings = Pick<Settings, "prices" | "installShare" | "extras" | "measureDays">;
 export interface DistrictOpt { slug: string; name: string }
@@ -66,13 +67,25 @@ export function WindowDrawing({ w, h, type, label }: { w: number; h: number; typ
 
 /* ---------------- shared contact fields ---------------- */
 
+/** Formats Ukrainian numbers as you type: 067 123 45 67 or +380 67 123 45 67. */
+export function formatPhone(raw: string): string {
+  const plus = raw.trim().startsWith("+");
+  const d = raw.replace(/\D/g, "").slice(0, 12);
+  if (plus || d.startsWith("380")) {
+    const p = [d.slice(0, 3), d.slice(3, 5), d.slice(5, 8), d.slice(8, 10), d.slice(10, 12)].filter(Boolean);
+    return "+" + p.join(" ");
+  }
+  const p = [d.slice(0, 3), d.slice(3, 6), d.slice(6, 8), d.slice(8, 10)].filter(Boolean);
+  return p.join(" ");
+}
+
 function ContactFields({ lang, districts, defaultDistrict, days, prefix }: { lang: Lang; districts: DistrictOpt[]; defaultDistrict?: string; days: string; prefix: string }) {
   const d = t(lang).form;
   return (
     <>
       <div className="grid2">
         <label className="f"><span>{d.name}</span><input className="input" id={`${prefix}-name`} name="name" autoComplete="name" placeholder={d.namePh} maxLength={80} /></label>
-        <label className="f"><span>{d.phone}</span><input className="input" id={`${prefix}-phone`} name="phone" type="tel" autoComplete="tel" inputMode="tel" placeholder={d.phonePh} maxLength={24} required /></label>
+        <label className="f"><span>{d.phone}</span><input className="input" id={`${prefix}-phone`} name="phone" type="tel" autoComplete="tel" inputMode="tel" placeholder={d.phonePh} maxLength={24} required onInput={(e) => { e.currentTarget.value = formatPhone(e.currentTarget.value); }} /></label>
         <label className="f">
           <span>{d.district}</span>
           <select className="select" id={`${prefix}-district`} name="district" defaultValue={defaultDistrict ?? ""}>
@@ -142,7 +155,7 @@ function utm(): Record<string, string> | null {
 
 async function sendLead(body: Record<string, unknown>): Promise<boolean> {
   try {
-    const res = await fetch("/api/lead", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const res = await fetch("/api/lead", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...body, ...trackerIds() }) });
     return res.ok;
   } catch {
     return false;
@@ -195,8 +208,16 @@ export function Calculator(props: {
 
   const q = useMemo(() => quote(rows, profile, extras, settings), [rows, profile, extras, settings]);
   const money = (v: number) => `${formatMoney(v, lang)} ₴`;
+  const interacted = useRef(false);
+  const mark = () => {
+    if (!interacted.current) {
+      interacted.current = true;
+      track("calc_interact", props.service);
+    }
+  };
 
   const setRow = (i: number, patch: Partial<WindowPreset>) => {
+    mark();
     setTouched(true);
     setRows((rs) => rs.map((r, j) => (j === i ? { ...r, ...patch } : r)));
   };
@@ -205,17 +226,18 @@ export function Calculator(props: {
     e.preventDefault();
     const c = readContact(e.currentTarget);
     const digits = c.phone.replace(/\D/g, "");
-    if (!q.count) return setErr(d.form.errWindows);
-    if (digits.length < 10 || digits.length > 12) return setErr(d.form.errPhone);
+    if (!q.count) { track("form_error", "windows"); return setErr(d.form.errWindows); }
+    if (digits.length < 10 || digits.length > 12) { track("form_error", "phone", digits.length); return setErr(d.form.errPhone); }
     setErr("");
     setBusy(true);
+    track("form_submit", props.service, q.high);
     const ok = await sendLead({
       ...c, lang, service: props.service, windows: rows, profile, extras, problems: [],
       page: window.location.pathname, utm: utm(), elapsed: Date.now() - started.current,
     });
     setBusy(false);
-    if (ok) setDone(true);
-    else setErr(d.form.errServer);
+    if (ok) { track("lead", props.service, q.high, { area: q.area, count: q.count }); setDone(true); }
+    else { track("form_error", "server"); setErr(d.form.errServer); }
   }
 
   return (
@@ -246,11 +268,11 @@ export function Calculator(props: {
                     <label className="f f-qty"><span>{d.calc.qty}</span><input className="input" id={`q-${i}`} type="number" inputMode="numeric" min={1} max={50} value={r.qty || ""} onChange={(e) => setRow(i, { qty: n(e.target.value) })} /></label>
                   </div>
                   <button type="button" className="icon-btn" aria-label={`${d.calc.remove} ${i + 1}`} hidden={rows.length < 2}
-                    onClick={() => { setTouched(true); setRows((rs) => rs.filter((_, j) => j !== i)); }}>×</button>
+                    onClick={() => { mark(); setTouched(true); setRows((rs) => rs.filter((_, j) => j !== i)); }}>×</button>
                 </div>
               ))}
             </div>
-            <button type="button" className="add" onClick={() => { setTouched(true); setRows((rs) => [...rs, { type: "double", w: 130, h: 140, qty: 1 }]); }}>{d.calc.add}</button>
+            <button type="button" className="add" onClick={() => { mark(); track("calc_add_window", props.service); setTouched(true); setRows((rs) => [...rs, { type: "double", w: 130, h: 140, qty: 1 }]); }}>{d.calc.add}</button>
           </div>
 
           <fieldset>
@@ -258,7 +280,7 @@ export function Calculator(props: {
             <div className="seg">
               {PROFILES.map((p) => (
                 <label key={p} title={d.calc.profiles[p].note}>
-                  <input type="radio" name="profile" value={p} checked={profile === p} onChange={() => setProfile(p)} />
+                  <input type="radio" name="profile" value={p} checked={profile === p} onChange={() => { mark(); track("calc_profile", p); setProfile(p); }} />
                   <b>{d.calc.profiles[p].name}</b>
                   <small>{formatMoney(settings.prices[p], lang)} ₴/м²</small>
                 </label>
@@ -271,7 +293,7 @@ export function Calculator(props: {
             <div className="toggles">
               {EXTRAS.map((x) => (
                 <label className="tog" key={x}>
-                  <input type="checkbox" checked={extras.includes(x)} onChange={(e) => setExtras((xs) => (e.target.checked ? [...xs, x] : xs.filter((y) => y !== x)))} />
+                  <input type="checkbox" checked={extras.includes(x)} onChange={(e) => { mark(); setExtras((xs) => (e.target.checked ? [...xs, x] : xs.filter((y) => y !== x))); }} />
                   {d.calc.extraNames[x]} <small>+{formatMoney(settings.extras[x], lang)}</small>
                 </label>
               ))}
@@ -299,14 +321,14 @@ export function Calculator(props: {
 
           {err && step === 1 && <p className="err" role="alert">{err}</p>}
           <div className="row">
-            <button type="button" className="btn btn-amber" onClick={() => { if (!q.count) return setErr(d.form.errWindows); setErr(""); setStep(2); }}>{d.calc.next}</button>
+            <button type="button" className="btn btn-amber" onClick={() => { if (!q.count) { track("form_error", "windows"); return setErr(d.form.errWindows); } setErr(""); track("calc_step2", props.service, q.high, { area: q.area, count: q.count, profile }); setStep(2); }}>{d.calc.next}</button>
           </div>
           </div>
 
           <div className="stack" hidden={step !== 2} style={{ gap: 16 }}>
           <div className="summary-line">
             <span>{fill(d.calc.summary, { count: q.count, area: formatArea(q.area, lang), price: q.count ? `${formatMoney(q.low, lang)} – ${formatMoney(q.high, lang)} ₴` : "—" })}</span>
-            <button type="button" className="linklike" onClick={() => { setErr(""); setStep(1); }}>{d.calc.back}</button>
+            <button type="button" className="linklike" onClick={() => { setErr(""); track("calc_back", props.service); setStep(1); }}>{d.calc.back}</button>
           </div>
           <div className="stack" onChange={(e) => { const el = e.target as HTMLInputElement; if (el.name === "urgency") setUrgent(el.value === "urgent"); }}>
             <h3 className="h3">{d.form.contacts}</h3>
@@ -344,17 +366,18 @@ export function RepairForm(props: { lang: Lang; service: string; measureDays: st
     const problems = fd.getAll("problem").map(String);
     const count = Number(fd.get("count") || 1);
     const digits = c.phone.replace(/\D/g, "");
-    if (!problems.length && !c.comment) return setErr(d.form.errProblem);
-    if (digits.length < 10 || digits.length > 12) return setErr(d.form.errPhone);
+    if (!problems.length && !c.comment) { track("form_error", "problem"); return setErr(d.form.errProblem); }
+    if (digits.length < 10 || digits.length > 12) { track("form_error", "phone", digits.length); return setErr(d.form.errPhone); }
     setErr("");
     setBusy(true);
+    track("repair_submit", props.service, problems.length);
     const ok = await sendLead({
       ...c, lang, service: props.service, problems, windows: [], profile: null, extras: [], windowsCount: count,
       page: window.location.pathname, utm: utm(), elapsed: Date.now() - started.current,
     });
     setBusy(false);
-    if (ok) setDone(true);
-    else setErr(d.form.errServer);
+    if (ok) { track("lead", props.service, undefined, { problems }); setDone(true); }
+    else { track("form_error", "server"); setErr(d.form.errServer); }
   }
 
   return (
@@ -399,6 +422,7 @@ export function PartnerForm({ lang, districts }: { lang: Lang; districts: Distri
     if (digits.length < 10 || digits.length > 12) return setErr(d.form.errPhone);
     setErr("");
     setBusy(true);
+    track("partner_submit");
     try {
       const res = await fetch("/api/partner", {
         method: "POST",
@@ -406,6 +430,7 @@ export function PartnerForm({ lang, districts }: { lang: Lang; districts: Distri
         body: JSON.stringify({ lang, name: s("name"), phone: s("phone"), telegram: s("telegram"), districts: fd.getAll("districts").map(String), services: fd.getAll("services").map(String), comment: s("comment"), website: s("website") }),
       });
       if (!res.ok) throw new Error();
+      track("partner_lead");
       setDone(true);
     } catch {
       setErr(d.form.errServer);

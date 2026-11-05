@@ -156,3 +156,21 @@ export function Footer({ lang, settings }: { lang: Lang; settings: Settings }) {
     </footer>
   );
 }
+
+export function MobileBar({ lang, settings }: { lang: Lang; settings: Settings }) {
+  const d = t(lang);
+  const tel = settings.phone.replace(/[^\d+]/g, "");
+  return (
+    <div className="mobile-bar" role="navigation" aria-label={d.cta.calc}>
+      <a className="btn btn-amber" href={`${href(lang)}#calc`} data-track="mobile-bar-calc">{d.cta.calc}</a>
+      {tel ? (
+        <a className="btn btn-glass" href={`tel:${tel}`} data-track="mobile-bar-call" aria-label={settings.phone}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2" /></svg>
+          {lang === "uk" ? "Подзвонити" : "Позвонить"}
+        </a>
+      ) : (
+        <a className="btn btn-glass" href={href(lang, "/poslugy/remont-vikon")} data-track="mobile-bar-repair">{d.cta.repair}</a>
+      )}
+    </div>
+  );
+}

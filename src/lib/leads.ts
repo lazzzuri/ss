@@ -27,6 +27,8 @@ export interface LeadInput {
   page: string;
   utm: Record<string, string> | null;
   ipHash: string;
+  vid?: string | null;
+  sid?: string | null;
 }
 
 export interface Lead extends LeadInput {
@@ -64,6 +66,8 @@ function row(r: Record<string, unknown>): Lead {
     page: (r.page as string) ?? "",
     utm: (r.utm as Record<string, string>) ?? null,
     ipHash: (r.ip_hash as string) ?? "",
+    vid: (r.vid as string) ?? null,
+    sid: (r.sid as string) ?? null,
     status: (r.status as LeadStatus) ?? "new",
     partnerId: r.partner_id == null ? null : Number(r.partner_id),
     soldPrice: (r.sold_price as number) ?? null,
@@ -81,10 +85,11 @@ export async function insertLead(l: LeadInput): Promise<number> {
   const db = await sql();
   const r = await db`
     insert into leads (lang, service, name, phone, district, address, housing, floor, urgent, damage, photos,
-      problems, comment, windows, profile, extras, area, price_low, price_high, page, utm, ip_hash)
+      problems, comment, windows, profile, extras, area, price_low, price_high, page, utm, ip_hash, vid, sid)
     values (${l.lang}, ${l.service}, ${l.name}, ${l.phone}, ${l.district}, ${l.address}, ${l.housing}, ${l.floor},
       ${l.urgent}, ${l.damage}, ${l.photos}, ${l.problems}, ${l.comment}, ${db.json(l.windows as never)}, ${l.profile},
-      ${l.extras}, ${l.area}, ${l.priceLow}, ${l.priceHigh}, ${l.page}, ${l.utm ? db.json(l.utm as never) : null}, ${l.ipHash})
+      ${l.extras}, ${l.area}, ${l.priceLow}, ${l.priceHigh}, ${l.page}, ${l.utm ? db.json(l.utm as never) : null}, ${l.ipHash},
+      ${l.vid ?? null}, ${l.sid ?? null})
     returning id`;
   return Number(r[0].id);
 }
