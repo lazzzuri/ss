@@ -265,7 +265,7 @@ footer .wrap { padding-block: 20px 32px; color: var(--muted); font-size: 0.8125r
 <section class="hero">
   <div class="wrap">
     <p class="eyebrow">Заміна та ремонт вікон</p>
-    <h1>Заміна вікон <span id="city-in">у вашому місті</span> без черги на місяць</h1>
+    <h1>Заміна вікон<span id="city-in"></span> без черги на місяць</h1>
     <p class="lead">Вкажіть розміри вікон і одразу побачите орієнтовну ціну. Ми передамо заявку майстру з вільним графіком, і він зателефонує вам сам.</p>
     <ul class="facts">
       <li><b><span class="mono" id="fact-days">3–7</span> днів</b><span>до заміру</span></li>
@@ -307,6 +307,16 @@ footer .wrap { padding-block: 20px 32px; color: var(--muted); font-size: 0.8125r
         <p class="hint">Майстер подзвонить, уточнить деталі й домовиться про замір.</p>
       </div>
       <div class="fields2">
+        <label class="f"><span>Місто</span><input type="text" id="city" name="city" list="cities" autocomplete="address-level2" placeholder="Київ"></label>
+        <datalist id="cities">
+          <option value="Київ"></option><option value="Харків"></option><option value="Одеса"></option><option value="Дніпро"></option>
+          <option value="Львів"></option><option value="Запоріжжя"></option><option value="Кривий Ріг"></option><option value="Миколаїв"></option>
+          <option value="Вінниця"></option><option value="Полтава"></option><option value="Чернігів"></option><option value="Черкаси"></option>
+          <option value="Житомир"></option><option value="Суми"></option><option value="Хмельницький"></option><option value="Рівне"></option>
+          <option value="Івано-Франківськ"></option><option value="Тернопіль"></option><option value="Луцьк"></option><option value="Біла Церква"></option>
+          <option value="Кропивницький"></option><option value="Ужгород"></option><option value="Чернівці"></option><option value="Херсон"></option>
+          <option value="Бровари"></option><option value="Ірпінь"></option><option value="Буча"></option>
+        </datalist>
         <label class="f"><span>Ім'я</span><input type="text" id="name" name="name" autocomplete="name" placeholder="Олена"></label>
         <label class="f"><span>Телефон</span><input type="tel" id="phone" name="phone" autocomplete="tel" inputmode="tel" placeholder="+380 67 123 45 67"></label>
         <label class="f"><span>Район або адреса</span><input type="text" id="district" name="district" autocomplete="street-address" placeholder="Район, вулиця"></label>
@@ -419,7 +429,7 @@ footer .wrap { padding-block: 20px 32px; color: var(--muted); font-size: 0.8125r
 const CONFIG = {
   demo: true,                         // true = заявка не надсилається, а показується текстом. Для запуску: false
   brand: "Назва сервісу",
-  cityIn: "у вашому місті",           // наприклад: "у Житомирі"
+  cityIn: "",                         // місто в заголовку, якщо реклама на одне місто: "у Житомирі". Порожньо = без міста
   phone: "+380 00 000 00 00",
   viber: "+380 00 000 00 00",
   telegram: "",                       // username без @, наприклад: "vikna_zhytomyr"
@@ -583,7 +593,7 @@ function buildMessage() {
   const c = compute();
   const v = (id) => $(id).value.trim();
   const lines = [];
-  lines.push("ЗАЯВКА: заміна вікон");
+  lines.push("ЗАЯВКА: заміна вікон · " + v("city"));
   if ($("urg-urgent").checked) lines.push("!!! ТЕРМІНОВО");
   if ($("damage").checked) lines.push("!!! Пошкоджено обстрілом");
   lines.push("");
@@ -614,9 +624,11 @@ async function onSubmit(e) {
   const digits = $("phone").value.replace(/\D/g, "");
   const c = compute();
   let msg = "";
-  if (!c.count) msg = "Вкажіть хоча б одне вікно з розмірами і кількістю.";
-  else if (digits.length < 10 || digits.length > 12) msg = "Перевірте телефон: потрібно 10 цифр, наприклад 067 123 45 67.";
-  if (msg) { err.textContent = msg; err.hidden = false; (c.count ? $("phone") : $("w-0")).focus(); return; }
+  let focusId = "";
+  if (!c.count) { msg = "Вкажіть хоча б одне вікно з розмірами і кількістю."; focusId = "w-0"; }
+  else if (!$("city").value.trim()) { msg = "Вкажіть місто, щоб ми передали заявку майстру поруч з вами."; focusId = "city"; }
+  else if (digits.length < 10 || digits.length > 12) { msg = "Перевірте телефон: потрібно 10 цифр, наприклад 067 123 45 67."; focusId = "phone"; }
+  if (msg) { err.textContent = msg; err.hidden = false; $(focusId).focus(); return; }
   err.hidden = true;
 
   const text = buildMessage();
@@ -676,7 +688,7 @@ function applyConfig() {
   $("brand").textContent = CONFIG.brand;
   $("foot-brand").textContent = CONFIG.brand;
   $("top-phone").textContent = CONFIG.phone;
-  $("city-in").textContent = CONFIG.cityIn;
+  $("city-in").textContent = CONFIG.cityIn ? " " + CONFIG.cityIn : "";
   $("fact-days").textContent = CONFIG.measureDays;
   document.querySelectorAll(".days-inline").forEach((el) => (el.textContent = CONFIG.measureDays));
   $("c-install-pct").textContent = Math.round(CONFIG.installShare * 100);
